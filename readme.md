@@ -1,3 +1,3 @@
-i am practicing the Rango tutorial on tangowithdjango.com
+I am practicing the Rango tutorial on tangowithdjango.com
 
-wish me luck!
+Wish me luck!
