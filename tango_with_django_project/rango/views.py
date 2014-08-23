@@ -1,9 +1,9 @@
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
-from rango.models import Category, Page
-import random
 
+from rango.models import Category, Page
+from rango.forms import CategoryForm
 
 def urlswap(title):
     # changes spaces to underscores
@@ -35,6 +35,7 @@ def index(request):
     return render_to_response('rango/index.html', context_dict, context)
 
 def about(request):
+    import random
     context = RequestContext(request)
     what = ['happy','clever','shy']
     context_dict = {'what': random.choice(what)}
@@ -74,4 +75,33 @@ def category(request, category_name_url):
         pass
 
     # go render the response and return it to the client.
-    return render_to_response('rango/category.html', context_dict, context)
+    return render_to_response('rango/category.html', 
+                              context_dict, context)
+    
+def add_category(request):
+    # get context from the request
+    context = RequestContext(request)
+    
+    # HTTP POST?
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        
+        # have we been provided with valid form?
+        if form.is_valid():
+            # save new category to the database
+            form.save(commit=True)
+            
+            # now call index() view
+            # the user will be shown the homepage
+            return index(request)
+        else:
+            # supplied form contained errors - just print them to terminal
+            print form.errors
+    else:
+        # if request was not POST, display the form to enter details
+        form = CategoryForm()
+        
+    # bad form (or form details), no form supplied..
+    # render the form with error messages (if any)
+    return render_to_response('rango/add_category.html', 
+                              {'form':form}, context)
