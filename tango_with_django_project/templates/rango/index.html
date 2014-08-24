@@ -5,8 +5,11 @@
     <title>Rango</title>
   </head>
   <body>
-    <h1>Rango says...hello world!</h1>
-    
+    <img src="{% static 'rango.jpg' %}" alt="Picture of Rango" /> <!-- New line -->
+    <h1>Rango says.. hello 
+    {% if user.is_authenticated %} {{ user.username }}
+    {% else %} world
+    {% endif %}!</h1>
     {% if categories %}
         <ul>
             {% for category in categories %}
@@ -26,8 +29,16 @@
     {% else %}
         <strong>There are no pages yet.</strong>
     {% endif %}
-    <a href="{% url 'rango:add_category' %}">Add a New Category</a><br />
+    
+    {% if user.is_authenticated %}
+    <a href="{% url 'rango:restricted' %}">Restricted Page</a><br />
+    <a href="{% url 'rango:logout' %}">Logout</a><br />
+    {% else %}
+    <a href="{% url 'rango:register' %}">Register Here</a><br />
+    <a href="{% url 'rango:login' %}">Login</a><br />
+    {% endif %}
+    
     <a href="{% url 'rango:about' %}">About</a><br />
-    <img src="{% static 'rango.jpg' %}" alt="Picture of Rango" /> <!-- New line -->
+    <a href="{% url 'rango:add_category' %}">Add a New Category</a><br />
   </body>
 </html>
