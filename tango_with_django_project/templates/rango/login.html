@@ -7,8 +7,15 @@
     <body>
         <h1>Login to Rango</h1>
         
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        
         <form id="login_form" method="post" action="{% url 'rango:login' %}">
             {% csrf_token %}
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}" />
+            {% endif %}
             Username: <input type="text" name="username" value="" size="50" />
             <br />
             Password: <input type="password" name="password" value="" size="50" />

@@ -4,9 +4,19 @@
     <title>Rango</title>
   </head>
   <body>
+    <img src="/media/rango.jpg" alt="chameleon rango sword" /><br />
+    
+    <a href="/rango/">Home</a>
+    <a href="{% url 'rango:about' %}">About</a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'rango:restricted' %}">Restricted Page</a>
+    <a href="{% url 'rango:logout' %}">Logout</a>
+    {% else %}
+    <a href="{% url 'rango:register' %}">Register Here</a>
+    <a href="{% url 'rango:login' %}">Login</a>
+    {% endif %}
+    
     <h1>About Rango</h1>
-    A <strong>{{ what }}</strong> chameleon.<br />
-    <a href="/rango/">Home</a><br />
-    <img src="/media/rango.jpg" alt="chameleon rango sword" />
+    <p>What a <strong>{{ what }}</strong> chameleon he is.</p>
   </body>
 </html>

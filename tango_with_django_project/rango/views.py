@@ -79,7 +79,8 @@ def category(request, category_name_url):
     # go render the response and return it to the client.
     return render_to_response('rango/category.html', 
                               context_dict, context)
-    
+
+@login_required                              
 def add_category(request):
     # get context from the request
     context = RequestContext(request)
@@ -108,6 +109,7 @@ def add_category(request):
     return render_to_response('rango/add_category.html', 
                               {'form':form}, context)
 
+@login_required
 def add_page(request, category_name_url):
     context = RequestContext(request)
     
@@ -212,6 +214,8 @@ def register(request):
 def user_login(request):
     # like before get context for the user's request
     context = RequestContext(request)
+    # context dictionary to be filled
+    context_dict = {}
     
     # if request is HTTP POST, try pull out relevant information
     if request.method == 'POST':
@@ -233,21 +237,29 @@ def user_login(request):
                 # if account is valid and active, we can log user in
                 # we'll send user back to homepage
                 login(request, user)
-                return HttpResponseRedirect('/rango/')
+                
+                url = '/rango/'
+                if request.POST['next']:
+                    url = request.POST['next']
+                return HttpResponseRedirect(url)
             else:
                 # an inactive account was used - no logging in!
-                return HttpResponse("Your Rango account is disabled.")
+                #return HttpResponse("Your Rango account is disabled.")
+                context_dict['error'] = 'Your Rango account is disabled.'
         else:
             # bad login details were provided. so we can't log user in
             print "Invalid login details: {0}, {1}".format(username, password)
-            return HttpResponse("Invalid login details supplied.")
+            #return HttpResponse("Invalid login details supplied.")
+            context_dict['error'] = 'Invalid login details supplied.'
     
     # request is not a HTTP POST, so display login form
     # this scenario would most likely be HTTP GET
-    else:
-        # no context variables to pass to template system, hence
-        # blank dictionary object..
-        return render_to_response('rango/login.html', {}, context)
+    #else: # this removed after exercises
+    # no context variables to pass to template system, hence
+    # blank dictionary object..
+    if request.GET['next']:
+        context_dict['next'] = request.GET['next']
+    return render_to_response('rango/login.html', context_dict, context)
    
 @login_required
 def restricted(request):
