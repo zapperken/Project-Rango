@@ -1,21 +1,8 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Rango</title>
-    </head>
-    <body>
-        <img src="/media/rango.jpg" alt="chameleon rango sword" /><br />
-    
-        <a href="/rango/">Home</a>
-        <a href="{% url 'rango:about' %}">About</a>
-        {% if user.is_authenticated %}
-        <a href="{% url 'rango:restricted' %}">Restricted Page</a>
-        <a href="{% url 'rango:logout' %}">Logout</a>
-        {% else %}
-        <a href="{% url 'rango:register' %}">Register Here</a>
-        <a href="{% url 'rango:login' %}">Login</a>
-        {% endif %}
-        
+{% extends 'rango/base.html' %}
+
+{% block title %}{{ category_name }}{% endblock %}
+
+{% block body_block %}
         <h1>{{ category_name }}</h1>
         {% if category %}
             {% if pages %}
@@ -27,12 +14,11 @@
             {% else %}
                 <strong>No pages currently in category.</strong><br />
             {% endif %}
+            
             {% if user.is_authenticated %}
             <a href="{% url 'rango:add_page' category_name_url %}">Add a New Page</a><br />
             {% endif %}
         {% else %}
             <strong>The specified category {{ category_name }} does not exist!</strong><br />
         {% endif %}
-        <a href="{% url 'rango:index' %}">Back to Home</a>
-    </body>
-</html>
+{% endblock %}

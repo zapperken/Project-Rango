@@ -129,8 +129,10 @@ def add_page(request, category_name_url):
                 page.category = cat
             except Category.DoesNotExist:
                 # if we get here, category does not exist
-                # go back and render add category form as way of saying category does not exist
-                return render_to_response('rango/add_category.html', {}, context)
+                # go back and render add category form as way of saying 
+                # category does not exist
+                return render_to_response('rango/add_category.html', 
+                                          {}, context)
             
             # also create a default value for number of views
             page.views = 0
@@ -155,7 +157,7 @@ def register(request):
     context = RequestContext(request)
     
     # a boolean value for telling template whether registration was successful
-    # set to false initially. code changes value to true when registration succeeds
+    # set false initially. code changes value to true when registration succeed
     registered = False
     
     # if it's a HTTP POST, we're interested in processing form data
@@ -176,13 +178,13 @@ def register(request):
             user.save()
             
             # now sort out the UserProfile instance
-            # since we need to set the user attribute ourselvs we set commit=False
-            # this delays saving the model until we're ready to avoid integrity problems
+            # since we need to set user attribute ourselvs we set commit=False
+            # this delays saving model until ready to avoid integrity problems
             profile = profile_form.save(commit=False)
             profile.user = user
             
             # did the user provide a profile picture?
-            # if so, we need get it from the input form and put it in UserProfile model
+            # if so, we need to get it from input form, put it in UserProfile model
             if 'picture' in request.FILES:
                 profile.picture = request.FILES['picture']
                 
@@ -263,7 +265,9 @@ def user_login(request):
    
 @login_required
 def restricted(request):
-    return HttpResponse("Since you're logged in, you can see this text!")
+    context = RequestContext(request)
+    context_dict['message'] = "Since you're logged in, you can see this text!"
+    return render_to_response('rango/restricted.html', context_dict, context)
     
 @login_required
 def user_logout(request):
