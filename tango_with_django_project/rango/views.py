@@ -241,7 +241,7 @@ def user_login(request):
                 login(request, user)
                 
                 url = '/rango/'
-                if request.POST['next']:
+                if 'next' in request.POST:
                     url = request.POST['next']
                 return HttpResponseRedirect(url)
             else:
@@ -259,14 +259,14 @@ def user_login(request):
     #else: # this removed after exercises
     # no context variables to pass to template system, hence
     # blank dictionary object..
-    if request.GET['next']:
+    if 'next' in request.GET:
         context_dict['next'] = request.GET['next']
     return render_to_response('rango/login.html', context_dict, context)
    
 @login_required
 def restricted(request):
     context = RequestContext(request)
-    context_dict['message'] = "Since you're logged in, you can see this text!"
+    context_dict = {'message':"Since you're logged in, you can see this text!"}
     return render_to_response('rango/restricted.html', context_dict, context)
     
 @login_required
