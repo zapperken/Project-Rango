@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
+from datetime import datetime
 
 def urlswap(title):
     # changes spaces to underscores
@@ -13,33 +14,41 @@ def urlswap(title):
     return title.replace('_',' ')
 
 def index(request):
-    # obtain context from HTTP request
     context = RequestContext(request)
     
-    # query database for a list of ALL categories 
-    # order categories by no. of likes in DESC order
-    # retrieve top 5 only - or all if less than 5
-    # place list in context_dict to be passed to the template
     category_list = Category.objects.order_by('-likes')[:5]
-    # retrieve top 5 viewed pages
+    
+    for category in category_list:
+        category.url = urlswap(category.name)
+        
     page_list = Page.objects.order_by('-views')[:5]
     context_dict = {'categories':category_list,
                     'pages':page_list}
     
-    # the ff two lines are new.
-    # we loop through each category returned and create URL attribute
-    # this attribute stores an encoded URL (e.g. spaces replaced with underscores)
-    for category in category_list:
-        category.url = urlswap(category.name)
+    if request.session.get('last_visit'):
+        # the session has value for the last visit
+        last_visit_time = request.session.get('last_visit')
+        visits = request.session.get('visits',0)
+        
+        if (datetime.now() - datetime.strptime(last_visit_time[:-7], 
+                                     "%Y-%m-%d %H:%M:%S")).days > 0:
+            request.session['visits'] = visits + 1
+            request.session['last_visit'] = str(datetime.now())
+        else:
+            # get returns None, and session does not have value for last visit
+            request.session['last_visit'] = str(datetime.now())
+            request.session['visits'] = 1            
     
-    # render response and send it back!
+    # render and return rendered response back to user
     return render_to_response('rango/index.html', context_dict, context)
 
 def about(request):
     import random
     context = RequestContext(request)
-    what = ['happy','clever','shy']
+    what = ['happy','clever','shy']    
     context_dict = {'what': random.choice(what)}
+    # get number of visits from session
+    context_dict['visits'] = request.session.get('visits')
     return render_to_response('rango/about.html', context_dict, context)
     
 def category(request, category_name_url):

@@ -5,4 +5,9 @@
 {% block body_block %}
         <h1>About Rango</h1>
         <p>What a <strong>{{ what }}</strong> chameleon he is.</p>
+        {% if visits %}
+        <p>You have already visited Rango {{ visits }} times!</p>
+        {% else %}
+        <p>This the first time you visited Rango today.</p>
+        {% endif %}
 {% endblock %}
