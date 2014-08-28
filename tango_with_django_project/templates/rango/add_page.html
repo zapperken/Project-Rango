@@ -3,6 +3,7 @@
 {% block title %}Add Page{% endblock %}
 
 {% block body_block %}
+    <div class="hero-unit">
         <h1>Add a Page</h1>
         
         <form id="page_form" method="post" action="{% url 'rango:add_page' category_name_url %}">
@@ -21,4 +22,5 @@
             <br /><input type="submit" name="submit" value="Create Page" />
             <a href="{% url 'rango:index' %}">Back to Home</a>
         </form>
+    </div>
 {% endblock %}

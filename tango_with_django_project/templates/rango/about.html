@@ -1,13 +1,16 @@
 {% extends 'rango/base.html' %}
-
+{% load static %}
 {% block title %}About{% endblock %}
 
 {% block body_block %}
+    <div class="hero-unit">
         <h1>About Rango</h1>
         <p>What a <strong>{{ what }}</strong> chameleon he is.</p>
         {% if visits %}
-        <p>You have already visited Rango {{ visits }} times!</p>
+        <p>You have already visited Rango {{ visits }} occasions.</p>
         {% else %}
         <p>This the first time you visited Rango today.</p>
         {% endif %}
+        <img src="{% static 'img/rango.jpg' %}" alt="Rango with Sword" />
+    </div>
 {% endblock %}
