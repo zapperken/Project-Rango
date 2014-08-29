@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
+from rango.bing_search import run_query
 from datetime import datetime
 
 def urlswap(title):
@@ -13,16 +14,22 @@ def urlswap(title):
         return title.replace(' ','_')
     return title.replace('_',' ')
 
+def get_category_list():
+    # get most liked categories
+    cat_list = Category.objects.order_by('-likes')[:5]
+    # decode category URLs
+    for cat in cat_list:
+        cat.url = urlswap(cat.name)
+    # return list of category
+    return cat_list
+    
 def index(request):
     context = RequestContext(request)
-    
-    category_list = Category.objects.order_by('-likes')[:5]
-    
-    for category in category_list:
-        category.url = urlswap(category.name)
-        
+    # get category list from helper function
+    category_list = get_category_list()
+    # get top viewed pages
     page_list = Page.objects.order_by('-views')[:5]
-    context_dict = {'categories':category_list,
+    context_dict = {'cat_list':category_list,
                     'pages':page_list}
     
     if request.session.get('last_visit'):
@@ -30,8 +37,7 @@ def index(request):
         last_visit_time = request.session.get('last_visit')
         visits = request.session.get('visits',0)
         
-        if (datetime.now() - datetime.strptime(last_visit_time[:-7], 
-                                     "%Y-%m-%d %H:%M:%S")).days > 0:
+        if (datetime.now() - datetime.strptime(last_visit_time[:-7], "%Y-%m-%d %H:%M:%S")).days > 0:
             request.session['visits'] = visits + 1
             request.session['last_visit'] = str(datetime.now())
         else:
@@ -47,6 +53,8 @@ def about(request):
     context = RequestContext(request)
     what = ['happy','clever','shy']    
     context_dict = {'what': random.choice(what)}
+    # get category list
+    context_dict['cat_list'] = get_category_list()    
     # get number of visits from session
     context_dict['visits'] = request.session.get('visits')
     return render_to_response('rango/about.html', context_dict, context)
@@ -55,15 +63,25 @@ def category(request, category_name_url):
     # obtain context from HTTP request
     context = RequestContext(request)
     
+    result_list = []
+    
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+        
+        if query:
+            # run our Bingp function to get the results list!
+            result_list = run_query(query)
+    
     # change underscores in the category to spaces
-    # URLs don't handle spaces well, so encode them as underscores
-    # we can simply replace underscores again to get the name
     category_name = urlswap(category_name_url)
     
     # create context dictionary we can pass to template rendering
     # we start by containing the name of category passed by user
     context_dict = {'category_name': category_name,
-                    'category_name_url': category_name_url}
+                    'category_name_url': category_name_url,
+                    'result_list': result_list }
+    # get category list
+    context_dict['cat_list'] = get_category_list()  
     
     try:
         # can we find category with given name?
@@ -93,6 +111,8 @@ def category(request, category_name_url):
 def add_category(request):
     # get context from the request
     context = RequestContext(request)
+    # getting the cat list populated
+    context_dict = {'cat_list': get_category_list()}
     
     # HTTP POST?
     if request.method == 'POST':
@@ -113,10 +133,11 @@ def add_category(request):
         # if request was not POST, display the form to enter details
         form = CategoryForm()
         
+    context_dict['form'] = form
     # bad form (or form details), no form supplied..
     # render the form with error messages (if any)
     return render_to_response('rango/add_category.html', 
-                              {'form':form}, context)
+                              context_dict, context)
 
 @login_required
 def add_page(request, category_name_url):
@@ -155,11 +176,14 @@ def add_page(request, category_name_url):
             print form.errors
     else:
         form = PageForm()
-        
-    return render_to_response('rango/add_page.html',
-                {'category_name_url': category_name_url,
+    
+    context_dict = {'category_name_url': category_name_url,
                  'category_name': category_name,
-                 'form': form}, context)
+                 'form': form}
+    # getting the cat list populated
+    context_dict['cat_list'] = get_category_list()
+    return render_to_response('rango/add_page.html',
+                context_dict, context)
                  
 def register(request):
     # like before, get request context
@@ -276,6 +300,8 @@ def user_login(request):
 def restricted(request):
     context = RequestContext(request)
     context_dict = {'message':"Since you're logged in, you can see this text!"}
+    # getting the cat list populated
+    context_dict['cat_list'] = get_category_list()
     return render_to_response('rango/restricted.html', context_dict, context)
     
 @login_required
@@ -285,3 +311,21 @@ def user_logout(request):
     
     # take user back to homepage
     return HttpResponseRedirect('/rango/')
+    
+def search(request):
+    context = RequestContext(request)
+    result_list = []
+    
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+        
+        if query:
+            # run our Bingp function to get the results list!
+            result_list = run_query(query)
+
+    # getting the cat list populated
+    context_dict = {'cat_list': get_category_list(),
+                    'result_list': result_list }
+    
+    return render_to_response('rango/search.html', 
+                              context_dict, context)
